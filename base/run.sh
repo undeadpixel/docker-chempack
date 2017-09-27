@@ -12,7 +12,6 @@ done
 
 # a horrible HACK, to prevent commands that change the entrypoint to /bin/sh
 
-echo "BEFORE: $@"
 if [[ $@ == "-c "* ]]; then
   # special case of mesos shelling everything... add quotes to all args
   # the -c is normal, the rest goes in a ''
@@ -21,8 +20,6 @@ if [[ $@ == "-c "* ]]; then
   i=1
   for arg in $@; do
     if [ $i -ne 1 ]; then
-      # arg=$(sed -e 's/^"//' -e 's/"$//' <<<"$arg")
-      # echo $arg
       COMMAND="$COMMAND $arg"
     fi
     i=$((i + 1))
@@ -33,10 +30,14 @@ else
   COMMAND="$@"
 fi
 
-echo "AFTER: $COMMAND"
+echo "Command: $COMMAND"
+
 if [ -z $RUN_GOSU ]; then
+  echo "Running as root"
   exec $COMMAND
 else
+  echo "Running with user $USER_NAME:$USER_ID:$GROUP_ID"
+
   exec gosu $USER_ID:$GROUP_ID sh -c "$COMMAND"
 fi
 

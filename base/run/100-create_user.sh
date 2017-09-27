@@ -10,7 +10,7 @@ if [ ! -z $USER_ID ] || [ ! -z $GROUP_ID ] || [ ! -z $USER_NAME ]; then
   # add default values to USER_ID, GROUP_ID and USER_NAME if any of them is set
   
   USER_ID=${USER_ID:-1000}
-  GROUP_ID=${USER_ID:-1000}
+  GROUP_ID=${GROUP_ID:-1000}
   USER_NAME=${USER_NAME:-"chempack"}
 
   RUN_GOSU=true
