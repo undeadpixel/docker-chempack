@@ -12,21 +12,31 @@ done
 
 # a horrible HACK, to prevent commands that change the entrypoint to /bin/sh
 
-
-if [[ $1 == "-c" ]]; then
+echo "BEFORE: $@"
+if [[ $@ == "-c "* ]]; then
   # special case of mesos shelling everything... add quotes to all args
-  COMMAND="sh"
-  for arg in "$@"; do
-    COMMAND="$COMMAND '$arg'"
+  # the -c is normal, the rest goes in a ''
+
+  COMMAND=""
+  i=1
+  for arg in $@; do
+    if [ $i -ne 1 ]; then
+      # arg=$(sed -e 's/^"//' -e 's/"$//' <<<"$arg")
+      # echo $arg
+      COMMAND="$COMMAND $arg"
+    fi
+    i=$((i + 1))
   done
+  # trim spaces
+  COMMAND=$(echo -e "$COMMAND" | sed -e 's/^[[:space:]]*//')
 else
   COMMAND="$@"
 fi
 
-echo $COMMAND
+echo "AFTER: $COMMAND"
 if [ -z $RUN_GOSU ]; then
-  exec $@
+  exec $COMMAND
 else
-  exec gosu $USER_ID:$GROUP_ID $COMMAND
+  exec gosu $USER_ID:$GROUP_ID sh -c "$COMMAND"
 fi
 
