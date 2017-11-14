@@ -24,7 +24,7 @@ ENV JAVA_HOME="/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64"
 # PYTHON 3 #
 ############
 
-ARG PYTHON_VERSION=3.6.2
+ARG PYTHON_VERSION=3.6.3
 
 ENV PATH="$PATH:/usr/local/python/bin" \
     LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/python/lib"
@@ -38,7 +38,7 @@ RUN set -ex && apt update &&\
       make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev llvm libncurses5-dev xz-utils tk-dev \
       libatlas-dev libpng-dev libfreetype6-dev libxft-dev gfortran libfftw3-dev &&\
     env PYTHON_CONFIGURE_OPTS="--enable-shared" ./python-build $PYTHON_VERSION /usr/local/python &&\
-    pip install matplotlib numpy scipy seaborn pandas ipython scikit-learn statsmodels &&\
+    pip install matplotlib numpy scipy seaborn pandas ipython scikit-learn statsmodels jupyter &&\
     find /usr/local/python -depth \
         \( \
           \( -type d -a \( -name test -o -name tests \) \) \
@@ -60,7 +60,7 @@ RUN set -ex && apt update &&\
 # RDKIT #
 #########
 
-ARG RDKIT_RELEASE=2017_03_3
+ARG RDKIT_RELEASE=2017_09_1
 
 # installed manually
 RUN set -ex &&\
@@ -88,6 +88,7 @@ RUN set -ex &&\
   mv /tmp/rdkit/rdkit /usr/local/rdkit/python/rdkit && mv /tmp/rdkit/Code /usr/local/rdkit/include &&\
   find /usr/local/rdkit/include -type f -not \( -name '*.h' -o -name '*.hpp' \) -delete &&\
   find /usr/local/rdkit/include -type d -empty -delete &&\
+  mv /tmp/rdkit/Data /usr/local/rdkit/Data &&\
   apt remove -y --purge \
     git wget flex bison build-essential cmake sqlite3 libsqlite3-dev libicu-dev &&\
   apt autoremove -y && libDeps='libc6 libssl1.0.0 libgcc1 libstdc++6' &&\
@@ -103,7 +104,7 @@ ENV RDBASE="/usr/local/rdkit" \
 # R #
 #####
 
-ARG R_VERSION=3.4.1
+ARG R_VERSION=3.4.2
 
 ENV PATH="$PATH:/usr/local/R/bin"
 
