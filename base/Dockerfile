@@ -24,7 +24,7 @@ ENV JAVA_HOME="/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64"
 # PYTHON 3 #
 ############
 
-ARG PYTHON_VERSION=3.6.3
+ARG PYTHON_VERSION=3.6.6
 
 ENV PATH="$PATH:/usr/local/python/bin" \
     LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/python/lib"
@@ -60,7 +60,7 @@ RUN set -ex && apt update &&\
 # RDKIT #
 #########
 
-ARG RDKIT_RELEASE=2017_09_1
+ARG RDKIT_RELEASE=2018_03_3
 
 # installed manually
 RUN set -ex &&\
@@ -82,7 +82,8 @@ RUN set -ex &&\
     -DPYTHON_LIBRARY='/usr/local/python/lib/libpython3.so' \
     -DPYTHON_NUMPY_INCLUDE_PATH="${pythonLibPath}/numpy/core/include" \
     -DBOOST_ROOT=/usr/local/boost \
-    -DBoost_NO_SYSTEM_PATHS=ON &&\
+    -DBoost_NO_SYSTEM_PATHS=ON \
+    -DRDK_BUILD_AVALON_SUPPORT=ON &&\
   make -j 12 && make install &&\
   mkdir -p /usr/local/rdkit/python && mv /tmp/rdkit/lib /usr/local/rdkit/lib &&\
   mv /tmp/rdkit/rdkit /usr/local/rdkit/python/rdkit && mv /tmp/rdkit/Code /usr/local/rdkit/include &&\
@@ -98,49 +99,6 @@ RUN set -ex &&\
 ENV RDBASE="/usr/local/rdkit" \
     LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/rdkit/lib:/usr/local/boost/lib"\
     PYTHONPATH="/usr/local/rdkit/python:$PYTHONPATH"
-
-
-#####
-# R #
-#####
-
-ARG R_VERSION=3.4.2
-
-ENV PATH="$PATH:/usr/local/R/bin"
-
-# installed manually
-RUN set -ex && apt update -y && \
-  apt install -y --no-install-recommends \
-    wget build-essential libcairo-dev libpng-dev libreadline-dev gfortran tcl-dev zlib1g-dev \
-    libbz2-dev libcairo2-dev libpcre3-dev liblzma-dev liblapack-dev libblas-dev libcurl4-openssl-dev \
-    libjpeg-dev libicu-dev libtiff5-dev texinfo libssl-dev &&\
-  mkdir /tmp/R &&\
-  wget -qO- https://cran.r-project.org/src/base/R-3/R-${R_VERSION}.tar.gz \
-    | tar xz --strip-components=1 -C /tmp/R &&\
-  cd /tmp/R && ./configure \
-    --with-x=no \
-    --with-cairo=yes \
-    --with-libpng=yes \
-    --enable-R-shlib \
-    --prefix=/usr/local/R &&\
-  make && make install &&\
-  R -e "install.packages('knitr', repos='http://cran.us.r-project.org')" && \
-  R -e "install.packages('ggplot2', repos='http://cran.us.r-project.org')" && \
-  R -e "install.packages('googleVis', repos='http://cran.us.r-project.org')" && \
-  R -e "install.packages('data.table', repos='http://cran.us.r-project.org')" && \
-  R -e "install.packages('devtools', repos='http://cran.us.r-project.org')" && \
-  R -e "install.packages('Rcpp', repos='http://cran.us.r-project.org')" && \
-  Rscript -e "library('devtools'); library('Rcpp'); install_github('ramnathv/rCharts')" &&\
-  apt remove -y --purge \
-    wget build-essential libcairo-dev libpng-dev libreadline-dev gfortran tcl-dev zlib1g-dev \
-    libbz2-dev libcairo2-dev libpcre3-dev liblzma-dev liblapack-dev libblas-dev libcurl4-openssl-dev \
-    libjpeg-dev libicu-dev libtiff5-dev texinfo libssl-dev &&\
-  apt autoremove -y && libDeps=' \
-      libc6 libx11-6 libbz2-1.0 libc6 libssl1.0.0 libgcc1 libncurses5 libreadline6 \
-      libstdc++6 libtcl8.6 zlib1g libtiff5 libquadmath0 libpng16-16 libpcre3 liblzma5 libjpeg-turbo8 \
-      libicu55 libgomp1 libgfortran3 libfreetype6 libcurl3 libcairo2 \
-  ' && apt install --no-install-recommends -y $libDeps && apt-mark manual $libDeps &&\
-  rm -fr /tmp/R && rm -rf /var/lib/apt/lists/*
 
 ##################
 # CONFIG SCRIPTS #
